@@ -11,3 +11,9 @@ Separate Vercel/Supabase diary app. This is a beta and has **not** had an indepe
 ## Deploy and verify
 
 Connect this repository to the separate `apni-diary-samarth` Vercel project and deploy the `main` branch. The site is a static app served from `public`; do not publish the Python/SQLite prototype as the cloud backend. After deployment set the Supabase Auth site URL and redirect allowlist to the actual HTTPS production domain. Validate email confirmation, account creation, vault recovery, two-user isolation, encrypted photo and note persistence, reload and logout before inviting people to use the beta. Default Supabase email delivery is restricted; custom SMTP is required for general public signups. Never upload real memories until these checks are complete, and always keep separate backups.
+
+## Account access and key rotation
+
+Sign-in requires a verified email and the login password, followed by the separate vault passphrase. The sign-in screen can request another verification email or a login-password reset email. Delivery of both remains dependent on SMTP configuration, and the default provider may restrict recipients. The password-reset link changes only the login credential, not the encryption passphrase.
+
+The recovery-key screen can generate a new recovery key after the vault passphrase is entered. Save the displayed key before activating it. Rotation updates the current stored wrapper and removes its stale signup metadata copy, but it does not re-encrypt diary entries or revoke access to previously obtained copies of the old wrapped master key and ciphertext. Treat a disclosed recovery key as a security incident; complete master-key rotation and independently reviewed recovery and backup are not implemented.
