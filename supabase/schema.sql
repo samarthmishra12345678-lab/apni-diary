@@ -1,0 +1,15 @@
+create table public.diary_vaults (user_id uuid primary key references auth.users(id) on delete cascade, display_name text not null check (char_length(display_name) between 1 and 80), vault jsonb not null check (pg_column_size(vault) < 4096), created_at timestamptz not null default now());
+create table public.diary_entries (id uuid primary key default gen_random_uuid(), user_id uuid not null references auth.users(id) on delete cascade, kind text not null check (kind in ('note','photo')), iv text not null check (char_length(iv) <= 128), cipher text not null check (char_length(cipher) <= 8000000), created timestamptz not null default now(), updated timestamptz not null default now());
+create index diary_entries_user_updated_idx on public.diary_entries (user_id, updated desc);
+alter table public.diary_vaults enable row level security;
+alter table public.diary_entries enable row level security;
+revoke all on public.diary_vaults, public.diary_entries from anon, public;
+grant select, insert, update on public.diary_vaults to authenticated;
+grant select, insert, update, delete on public.diary_entries to authenticated;
+create policy vault_select_own on public.diary_vaults for select to authenticated using ((select auth.uid()) = user_id);
+create policy vault_insert_own on public.diary_vaults for insert to authenticated with check ((select auth.uid()) = user_id);
+create policy vault_update_own on public.diary_vaults for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy entries_select_own on public.diary_entries for select to authenticated using ((select auth.uid()) = user_id);
+create policy entries_insert_own on public.diary_entries for insert to authenticated with check ((select auth.uid()) = user_id);
+create policy entries_update_own on public.diary_entries for update to authenticated using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);
+create policy entries_delete_own on public.diary_entries for delete to authenticated using ((select auth.uid()) = user_id);
